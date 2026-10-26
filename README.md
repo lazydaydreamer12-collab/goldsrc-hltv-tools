@@ -46,7 +46,7 @@ Everything is Python's standard library plus a web page. Nothing is installed in
 1. Install Python from [python.org](https://www.python.org/downloads/windows/). The installer's **py launcher** option (on by default) is enough. Also ticking "Add python.exe to PATH" does no harm.
 2. Download this repository (**Code → Download ZIP**, then unzip it anywhere) or clone it:
    ```
-   git clone https://github.com/<you>/goldsrc-hltv-tools.git
+   git clone https://github.com/lazydaydreamer12-collab/goldsrc-hltv-tools.git
    ```
 3. Open `hltv_recorder.ini` in a text editor and check `halflife_dir`. It must be your Half-Life folder, the one with `hltv.exe` and `hl.exe` in it. The default is Steam's standard location. If Steam keeps your games elsewhere, it's the `steamapps\common\Half-Life` folder of that library.
 
