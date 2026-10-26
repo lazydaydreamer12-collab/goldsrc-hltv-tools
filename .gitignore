@@ -1,0 +1,22 @@
+# Your data: recordings hold other players' names, SteamIDs and chat
+Recordings/
+Exports/
+edits/
+cache/
+*.dem
+*.log
+*.lock
+*_players.txt
+players_index.csv
+
+# Python
+__pycache__/
+*.pyc
+
+# Plugin build output
+plugin/**/bin/
+plugin/**/obj/
+*.dll
+*.pdb
+*.user
+.vs/

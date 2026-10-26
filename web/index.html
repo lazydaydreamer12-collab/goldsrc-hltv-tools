@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HLTV Demo Viewer</title>
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="brand">HLTV Demo Viewer</div>
+    <button id="btnOpen" class="btn">Open demo…</button>
+    <div id="demoTitle" class="title"></div>
+    <div class="spacer"></div>
+    <div class="seg" id="modes" role="group" aria-label="Camera">
+      <button data-mode="eye" title="Through the selected player's eyes (1)">Eyes</button>
+      <button data-mode="chase" title="Follow the selected player (2)">Follow</button>
+      <button data-mode="free" title="Free camera: drag to look, WASD to fly (3)">Free</button>
+      <button data-mode="top" title="Top-down overview (4)">Top</button>
+    </div>
+    <label class="tog" title="Show every player through walls (X)"><input type="checkbox" id="optXray"> X-ray</label>
+    <label class="tog" title="Draw where each player is aiming (L)"><input type="checkbox" id="optAim"> Aim lines</label>
+    <label class="tog" title="Name tags (N)"><input type="checkbox" id="optNames"> Names</label>
+    <label class="tog" title="The hitboxes the server tests shots against (K)"><input type="checkbox" id="optHit"> Hitboxes</label>
+    <label class="tog" title="Lag compensation (U): test a human's shots against where the others were on their screen, as the server does. Off: against where everyone is in the demo."><input type="checkbox" id="optUnlag"> Lag comp</label>
+    <span class="vol" title="Game sound (M mutes)"><button id="btnMute" class="btn icon" title="Mute / unmute (M)">🔊</button><input type="range" id="optVol" min="0" max="1" step="0.05" aria-label="Volume"></span>
+    <button id="btnHelp" class="btn icon" title="Keyboard shortcuts (H)">?</button>
+  </header>
+
+  <aside id="side">
+    <nav class="tabs" role="tablist">
+      <button data-tab="players" class="on">Players</button>
+      <button data-tab="kills">Kills</button>
+      <button data-tab="chat">Chat</button>
+      <button data-tab="sus">Review</button>
+      <button data-tab="edit">Edit</button>
+    </nav>
+    <div id="tab-players" class="tab on"></div>
+    <div id="tab-kills" class="tab"></div>
+    <div id="tab-chat" class="tab"></div>
+    <div id="tab-sus" class="tab"></div>
+    <div id="tab-edit" class="tab"></div>
+  </aside>
+
+  <main id="stage">
+    <canvas id="gl"></canvas>
+    <div id="labels"></div>
+    <div id="crosshair" class="hidden"></div>
+    <div id="pov" class="hidden"></div>
+    <div id="pip" class="hidden" title="Click to swap with the main view"><span class="nm"></span><div class="pip-bar">
+      <button data-pip="eye" title="Their eyes">Eyes</button><button data-pip="chase" title="Follow them">Follow</button><button data-pip="top" title="From above">Top</button>
+      <button data-pip="target" title="Show whoever the main player is aiming at">Target</button>
+      <button data-pip="corner" title="Move to another corner">◳</button><button data-pip="size" title="Bigger / smaller">⤢</button>
+      <button data-pip="swap" title="Swap with the main view">⇄</button><button data-pip="close" title="Close (J)">✕</button></div></div>
+    <div id="killfeed"></div>
+    <div id="chatfeed"></div>
+    <div id="banner" class="hidden"></div>
+  </main>
+
+  <footer id="bar">
+    <div class="transport">
+      <button class="btn icon" id="bStart" title="Start (Home)">⏮</button>
+      <button class="btn icon" id="bBack" title="Back 10 s (Shift+←)">−10</button>
+      <button class="btn icon" id="bRew" title="Play backwards (R)">◀◀</button>
+      <button class="btn icon play" id="bPlay" title="Play / pause (Space)">▶</button>
+      <button class="btn icon" id="bFwd" title="Forward 10 s (Shift+→)">+10</button>
+      <button class="btn icon" id="bStepB" title="Previous frame (,)">‹</button>
+      <button class="btn icon" id="bStepF" title="Next frame (.)">›</button>
+      <select id="speed" title="Speed ([ and ])">
+        <option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
+        <option value="8">8×</option><option value="16">16×</option>
+      </select>
+      <button class="btn icon" id="bMark" title="Bookmark this moment (B)">★</button>
+    </div>
+    <div id="timeline"><canvas id="tl"></canvas><div id="tlTip" class="hidden"></div></div>
+    <div id="clock">0:00 / 0:00</div>
+  </footer>
+</div>
+
+<div id="picker" class="overlay">
+  <div class="panel wide">
+    <div class="panel-head">
+      <h1>Open a demo</h1>
+      <button class="btn" id="pickRefresh">Refresh</button>
+      <button class="btn icon" id="pickClose" title="Close">✕</button>
+    </div>
+    <p class="muted">Recordings from the HLTV recorder and demos in your Half-Life folders. You can also drop a <b>.dem</b> file anywhere on this page.</p>
+    <div id="pickList" class="picklist"></div>
+  </div>
+</div>
+
+<div id="loading" class="overlay hidden">
+  <div class="panel">
+    <h1 id="loadTitle">Loading…</h1>
+    <div class="progress"><div id="loadBar"></div></div>
+    <p id="loadText" class="muted"></p>
+  </div>
+</div>
+
+<div id="help" class="overlay hidden">
+  <div class="panel wide">
+    <div class="panel-head"><h1>Controls</h1><button class="btn icon" id="helpClose" title="Close">✕</button></div>
+    <div class="cols">
+      <div>
+        <h2>Playback</h2>
+        <dl>
+          <dt>Space</dt><dd>Play / pause</dd>
+          <dt>R</dt><dd>Play backwards / forwards</dd>
+          <dt>← →</dt><dd>Jump 5 s (Shift: 15 s)</dd>
+          <dt>, .</dt><dd>Step one frame</dd>
+          <dt>[ ]</dt><dd>Slower / faster</dd>
+          <dt>Home End</dt><dd>Start / end</dd>
+          <dt>B</dt><dd>Bookmark the moment</dd>
+          <dt>Drag the bar</dt><dd>Scrub (red = kills, orange = review leads, white = bookmarks)</dd>
+        </dl>
+      </div>
+      <div>
+        <h2>Views</h2>
+        <dl>
+          <dt>1</dt><dd>Eyes: the selected player's own view and crosshair</dd>
+          <dt>2</dt><dd>Follow: orbit the player (drag, wheel to zoom)</dd>
+          <dt>3</dt><dd>Free: drag to look, WASD to fly, Q/E down/up, Shift fast</dd>
+          <dt>4</dt><dd>Top-down: drag to pan, wheel to zoom</dd>
+          <dt>Tab / Shift+Tab</dt><dd>Next / previous player</dd>
+          <dt>Click a player</dt><dd>Select them</dd>
+          <dt>X</dt><dd>X-ray: all players glow through walls</dd>
+          <dt>L</dt><dd>Aim lines (dashed part = the aim continuing through a wall)</dd>
+          <dt>N</dt><dd>Name tags</dd>
+          <dt>M</dt><dd>Mute / unmute the game sound (it plays while the demo runs forward, up to 2×)</dd>
+          <dt>K</dt><dd>Hitboxes: what the server tests shots against (red = head); bullets light up the box they go through</dd>
+          <dt>U</dt><dd>Lag compensation on / off for the hitbox tests and the Review scan</dd>
+          <dt>J</dt><dd>Picture in picture: a second view in a corner (PiP on a player's card picks who; Target shows whoever the main player aims at)</dd>
+          <dt>9 0</dt><dd>Free view: zoom out / in</dd>
+        </dl>
+      </div>
+      <div>
+        <h2>Edit tab (videos)</h2>
+        <dl>
+          <dt>C</dt><dd>Camera keyframe: the free camera, at this moment, in the dolly shot playing now</dd>
+          <dt>I O</dt><dd>Start / end of the video</dd>
+          <dt>P</dt><dd>Preview the edit (the camera follows the shots)</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="muted">The Review tab scans the whole demo for moments where a player's crosshair stays on an enemy who is behind a wall while that enemy moves, and for very fast snaps onto a target right before a shot. They are leads to watch, not proof: check each one in Eyes view with X-ray on.</p>
+    <p class="muted">Hitboxes are posed the way the server poses them for a shot, which is not the model you see: in TFC every class gets the scout's hitboxes, the legs don't run, and the body faces where the player looks. A bullet is traced along the centre of the aim (shotgun spread isn't), against where the server had everyone at that moment. The server's lag compensation moves targets back by the shooter's ping when it checks a hit, so the boxes are not exactly what the shooter saw.</p>
+  </div>
+</div>
+
+<div id="exportVeil" class="hidden"><div class="msg">Exporting video…</div></div>
+
+<div id="drop" class="overlay hidden"><div class="panel"><h1>Drop the .dem to open it</h1></div></div>
+<script src="/web/studio.js"></script>
+<script src="/web/audio.js"></script>
+<script src="/web/fx.js"></script>
+<script src="/web/editor.js"></script>
+<script src="/web/viewer.js"></script>
+</body>
+</html>

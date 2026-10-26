@@ -1,0 +1,12 @@
+; hltv_vitals.def - export GiveFnptrsToDll undecorated. metamod-p looks it up
+; by its plain name with GetProcAddress before Meta_Query; MSVC would
+; otherwise export the __stdcall-decorated "_GiveFnptrsToDll@8" and metamod
+; would reject the DLL as "badf".
+
+LIBRARY "hltv_vitals"
+
+EXPORTS
+	GiveFnptrsToDll
+	Meta_Query
+	Meta_Attach
+	Meta_Detach
