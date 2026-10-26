@@ -209,6 +209,10 @@ Recordings and player lists hold other people's names, SteamIDs and chat. They s
 - The review scans give leads, not verdicts.
 - The recorder is Windows-only. Other GoldSrc mods replay, but their weapon effects and class details aren't covered.
 
+## License
+
+The recorder, viewer and editor are under the [MIT License](LICENSE). The HLTV Vitals plugin in `plugin/hltv_vitals` is under the GNU GPL version 2, with Metamod's Half-Life linking exception (see [its license](plugin/hltv_vitals/LICENSE) and [README](plugin/hltv_vitals/README.md#license)).
+
 ## Credits
 
 - Demo and network formats follow Valve's HLTV proxy as rebuilt in [ReHLDS](https://github.com/dreamstalker/rehlds), and the engine's rules as seen in it.

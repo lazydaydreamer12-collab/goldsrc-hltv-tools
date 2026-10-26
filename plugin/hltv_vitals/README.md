@@ -51,3 +51,7 @@ The user message is `HltvVitals`, with variable length. It holds one entry per p
 | armor | short | `pev->armorvalue` |
 
 `goldsrc_demo.py` decodes it (`u_hltvvitals`). Playing such a demo back in the game itself (`viewdemo`), or watching the HLTV live with a game client, hasn't been tested with the extra message.
+
+## License
+
+This plugin is licensed under the **GNU General Public License version 2** (see [LICENSE](LICENSE)), because it builds against Metamod's GPL headers. Like Metamod, it adds an exception that allows linking with Valve's Half-Life engine and game libraries; the notice is at the top of `hltv_vitals.cpp`. The Half-Life SDK headers it builds against are under Valve's own SDK license, which allows only non-commercial use with Valve's products. The rest of this repository is MIT licensed.
